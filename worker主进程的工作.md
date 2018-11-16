@@ -137,9 +137,49 @@ workerman通过stopAll方法来处理这个信号事件，代码分为两个部�
 方法详解
 
 1. 父进程行为
-   1. ​
+   1. 设置主进程状态为STATUS_SHUTDOWN
+   2. 向所有子进程发送SIGINT信号并设置超时强制杀死的信号
+   3. 清空状态统计文件
+2. 子进程行为
+   1. 关闭所有worker实例的事件监听
+   2. 关闭子进程全局定时器
+   3. 退出程序
 
 
+### 进程状态(SIGUSR2)
+
+workerman通过writeStatisticsToStatusFile来处理该信号,同样有父进程和子进程处理
+
+1. 父进程
+   1. 父进程记录总统计数据
+      1. workerman版本
+      2. php版本
+      3. 进程开始运行时间
+      4. 进程运行时间
+      5. 当前负载
+      6. 当前事件驱动
+      7. 当前worker数量，当前进程数量
+      8. 子进程退出状态
+      9. 进程内存、监听进程等进程相关信息
+   2. 发送SIGUSR2给所有子进程
+2. 子进程
+   1. 收集memory、socket_name、worker_name、conn_count、send_fail、timer_count、total_request
+
+---
+
+主要说明一下是如何展示进程状态的,首先需要确保服务已经运行，之后用户通过php ***.php status命令再开启一个进程(Status进程)，该进程将会给服务进程发送一个SIGUSR2信号，之后Status进程将sleep 1s用于等待服务进程响应信号处理。当main_worker进程接受到该信号时，将会调用writeStatisticsToStatusFile将信息写入了统计文件中，同时发送信号给子进程，使得子进程也将本进程的输出写入统计文件。Status进程恢复工作读取文件并展示在终端中。
+
+### 查看网络连接信号(SIGIO)
+
+父进程记录基本状态子进程在写入自己的连接信息，有新开启的进程将内容展示
+
+### 总结
+
+信号处理有两种调用方案:
+
+1. 直接通过shell kill -SIG pid来发送信号,但是只能适用于reload信号和stop信号因为这两个不需要输出，而restart信号将会把当前用户启用的进程替换之前的进程，connections和status又需要当前的启用进程来解析统计文件的输出
+2. 通过workerman提供的命令，这种方式更简单更加方便，不需要了解workerman的源码，利用信号和服务进程进行通信
 
 ## 子进程退出
 
+当接收到子进程退出之后monitor，首先需要记录日志信息，之后添加当前这个worker的退出记录，同时重置pidMap和重新舍子idMap，其次如果当前主进程状态不是SHUTDOWN再开启一个新的进程如果是则开始清理资源并执行onMasterStop回调
