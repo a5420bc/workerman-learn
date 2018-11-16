@@ -80,8 +80,8 @@ workerman通过reload方法来处理这个信号事件，代码分为两个部�
 父进程每次只发送一个信号的原因是为了平滑重启,一个子进程一个子进程重启，防止一个把线上所有的工作进程都杀死，对线上造成影响,当主进程执行完reload方法后程序回到了monitor的循环中监听信号或者子进程退出，此时SIGUSR1信号被子进程处理一个子进程退出信号被monitor捕获
 
 ```php
-	// If a child has already exited.
-	if ($pid > 0) {
+   // If a child has already exited.
+   if ($pid > 0) {
       // Find out witch worker process exited.
       foreach(self::$_pidMap as $worker_id = > $worker_pid_array) {
           if (isset($worker_pid_array[$pid])) {
