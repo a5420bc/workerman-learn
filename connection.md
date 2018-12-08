@@ -25,7 +25,7 @@ checkBufferWillFull只是检查在本次缓存写入后，是否已满，并触�
 
 ### baseRead
 
-![base_read](C:\Users\viruser.v-desktop\Desktop\workerman\base_read.png)
+![base_read](base_read.png)
 
 对base_read在做一个简要的说明
 
