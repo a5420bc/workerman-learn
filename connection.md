@@ -2,11 +2,11 @@
 
 ## TcpConnection
 
-####构造
+### 构造
 
 tcpconnection连接被设置为非阻塞，也就是说无论是read还是write时间都会直接返回不会等待写入到内核socket缓冲区，同时会添加read事件等待对端发送连接请求。
 
-#### send
+### send
 
 1. 协议封包
 2. 将buffer写入socket缓冲区
@@ -70,6 +70,6 @@ checkBufferWillFull只是检查在本次缓存写入后，是否已满，并触�
 
 连接建立需要时间，主要的开销是在网络连接上，因此设置了一个连接确认的回调函数
 
-## checkConnection
+### checkConnection
 
 通过确认写就绪事件来确认连接是否建立成功，其余设置基本与worker一节当中建立连接相同，唯一需要注意的是sslHandShakeCompleted属性是被设置为true这是因为AsyncTcpConnection是基于TcpConnection,所以如果需要建立的是ssl连接那么baseRead方法中会对该属性进行确认，TcpConnection可读是需要ssl握手成功后才可以读取应用数据，而作为客户端的一方必须得先发送握手信息，所以此处需要设置该字段为true。
